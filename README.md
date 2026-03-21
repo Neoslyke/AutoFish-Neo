@@ -1,20 +1,10 @@
-# AutoFishR (Auto Fishing Remastered)
-
-## Authors
-- **少司命 (Shao Si Ming)**: Core code contributor
-- **羽学 (Yu Xue)**: Creative design and initial implementation
-- **ksqeib**: Current maintainer
-
-## Important Notice
-- For any issues with this plugin, please contact **ksqeib**
-- Contact QQ (only): **2388990095**
-- **DO NOT mention developers in group chat**. For inquiries, add on QQ for private chat.
-- **Warning: Disturbing other developers by mentioning them in group chat will be at your own risk!**
+# AutoFish
 
 ## Description
 Auto fishing plugin for TShock servers. Supports auto reel-in, multi-hook, Buffs, extra loot, consumption mode, etc. Commands can be shown/hidden dynamically via permissions and global switches.
 
-- Legacy repo: https://github.com/ksqeib/AutoFish-old
+- Legacy repo       : https://github.com/ksqeib/AutoFish-old
+- Remastered repo   : https://github.com/UnrealMultiple/TShockPlugin/tree/master/src/AutoFish
 
 ## Permission Model (Important)
 
