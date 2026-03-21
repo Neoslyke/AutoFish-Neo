@@ -19,7 +19,7 @@ public partial class Plugin(Main game) : LazyPlugin(game)
 
     public override string Name => "AutoFish";
 
-    public override string Author => "Neoslyke, ksqeib, 羽学, 少司命)";
+    public override string Author => "Neoslyke, ksqeib, 羽学, 少司命";
 
     public override Version Version => new(2, 1, 0);
 
