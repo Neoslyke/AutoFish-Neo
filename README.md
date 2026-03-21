@@ -3,19 +3,8 @@
 ## Description
 Auto fishing plugin for TShock servers. Supports auto reel-in, multi-hook, Buffs, extra loot, consumption mode, etc. Commands can be shown/hidden dynamically via permissions and global switches.
 
-- Legacy repo       : https://github.com/ksqeib/AutoFish-old
-- Remastered repo   : https://github.com/UnrealMultiple/TShockPlugin/tree/master/src/AutoFish
-
-## Permission Model (Important)
-
-- Admin bypass: `autofish.admin`.
-- Common whitelist: `autofish.common`; owning it grants all player commands (still affected by global toggles and negative permissions).
-- Feature permissions: `autofish.<feature>`; examples: `autofish.fish`, `autofish.multihook`, etc.
-- Negative permissions: `autofish.no.<feature>`; owning it forces denial (except admin). Examples: `autofish.no.fish`.
-- `/af` itself needs `autofish`; `autofish.common` is equivalent to all player commands.
-
-Example:
-- If you want the default group to use everything except auto fishing, give group `autofish.common` and also `autofish.no.fish`. Players can use Buff/Multi-hook, etc., but cannot enable auto fishing.
+- Legacy repo: https://github.com/ksqeib/AutoFish-old
+- Remastered repo: https://github.com/UnrealMultiple/TShockPlugin/tree/master/src/AutoFish
 
 ## Player Commands (/af, /autofish)
 
@@ -34,29 +23,25 @@ Example:
 | /af bait | Toggle precious bait protection | autofish.bait.protect | Global precious bait protection enabled |
 | /af baitlist | View precious bait list | autofish.bait.protect | Same as above |
 
-> Negative permissions win: with `autofish.no.<feature>`, everyone except admin is treated as no-permission.
-
 ## Admin Commands (/afa, /autofishadmin)
 
 All require `autofish.admin`.
 
-| Command | Description |
-| --- | --- |
-| /afa | Show admin help menu |
-| /afa buff | Toggle global fishing Buff |
-| /afa multi | Toggle global multi-line mode |
-| /afa duo <number> | Set global multi-hook cap |
-| /afa mod | Toggle global consumption mode |
-| /afa set <amount> | Set consumption item quantity (when consumption mode is on) |
-| /afa time <minutes> | Set reward duration in minutes (when consumption mode is on) |
-| /afa add <item> | Add allowed bait (visible when consumption mode is on) |
-| /afa del <item> | Remove allowed bait (visible when consumption mode is on) |
-| /afa addloot <item> | Add extra loot |
-| /afa delloot <item> | Remove extra loot |
-| /afa monster | Toggle global avoid fishing monsters |
-| /afa anim | Toggle global skip catch animation |
-
-Others: `/reload` (tshock.cfg.reload) to reload config.
+| Command | Permission | Description |
+| --- | --- | --- |
+| /afa | `autofish.admin` | Show admin help menu |
+| /afa buff | `autofish.admin` | Toggle global fishing Buff |
+| /afa multi | `autofish.admin` | Toggle global multi-line mode |
+| /afa duo \<number\> | `autofish.admin` | Set global multi-hook cap |
+| /afa mod | `autofish.admin` | Toggle global consumption mode |
+| /afa set \<amount\> | `autofish.admin` | Set consumption item quantity (when consumption mode is on) |
+| /afa time \<minutes\> | `autofish.admin` | Set reward duration in minutes (when consumption mode is on) |
+| /afa add \<item\> | `autofish.admin` | Add allowed bait (visible when consumption mode is on) |
+| /afa del \<item\> | `autofish.admin` | Remove allowed bait (visible when consumption mode is on) |
+| /afa addloot \<item\> | `autofish.admin` | Add extra loot |
+| /afa delloot \<item\> | `autofish.admin` | Remove extra loot |
+| /afa monster | `autofish.admin` | Toggle global avoid fishing monsters |
+| /afa anim | `autofish.admin` | Toggle global skip catch animation |
 
 ## Config
 See [resource/config/zh-cn.yml](resource/config/zh-cn.yml) or [resource/config/en-us.yml](resource/config/en-us.yml). When missing, the plugin writes a default template based on system language.
