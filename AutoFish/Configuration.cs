@@ -4,7 +4,6 @@ using TShockAPI.Hooks;
 
 namespace AutoFish;
 
-[Config]
 internal class Configuration : JsonConfigBase<Configuration>
 {
     public class BaitReward

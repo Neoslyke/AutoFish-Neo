@@ -27,7 +27,6 @@ public partial class Plugin(Main game) : LazyPlugin(game)
 
     internal static AFPlayerData.ItemData CreateDefaultPlayerData(string playerName)
     {
-        // Attempt to resolve current player to seed defaults from permissions
         var player = TShock.Players.FirstOrDefault(p => p != null && p.Active &&
                                                         p.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase));
 
@@ -112,5 +111,4 @@ public partial class Plugin(Main game) : LazyPlugin(game)
 
         base.Dispose(disposing);
     }
-
 }
