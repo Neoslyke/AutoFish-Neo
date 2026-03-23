@@ -2,90 +2,45 @@
 
 public class AFPlayerData
 {
-    // Player data table (uses dictionary for fast lookup by player name)
-    private Dictionary<string, ItemData> Items { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ItemData> _items = new(StringComparer.OrdinalIgnoreCase);
 
     internal ItemData GetOrCreatePlayerData(string name, Func<string, ItemData> factory)
     {
         if (string.IsNullOrWhiteSpace(name))
-        {
             throw new ArgumentException("Player name is required.", nameof(name));
-        }
 
-        ArgumentNullException.ThrowIfNull(factory);
-
-        if (!this.Items.TryGetValue(name, out var data) || data == null)
+        if (!_items.TryGetValue(name, out var data) || data == null)
         {
             data = factory(name);
-            this.Items[name] = data;
+            _items[name] = data;
         }
 
         return data;
     }
 
-    public class ItemData(
-        string name = "",
-        bool autoFishEnabled = true,
-        bool buffEnabled = false,
-        int hookMaxNum = 3,
-        bool multiHookEnabled = false,
-        bool firstFishHintShown = false,
-        bool blockMonsterCatch = false,
-        bool skipFishingAnimation = true,
-        bool protectValuableBaitEnabled = true,
-        bool blockQuestFish = true)
+    public class ItemData
     {
-        public bool CanConsume()
-        {
-            return this.GetRemainTimeInMinute() > 0;
-        }
+        public string Name { get; set; } = "";
+        public bool AutoFishEnabled { get; set; } = true;
+        public bool BuffEnabled { get; set; }
+        public int HookMaxNum { get; set; } = 3;
+        public bool MultiHookEnabled { get; set; }
+        public bool FirstFishHintShown { get; set; }
+        public bool BlockMonsterCatch { get; set; }
+        public bool SkipFishingAnimation { get; set; } = true;
+        public bool BlockQuestFish { get; set; } = true;
+        public bool ProtectValuableBaitEnabled { get; set; } = true;
+        public DateTime ConsumeOverTime { get; set; } = DateTime.Now;
+        public DateTime ConsumeStartTime { get; set; }
 
-        public double GetRemainTimeInMinute()
-        {
-            var minutesHave = (this.ConsumeOverTime - DateTime.Now).TotalMinutes;
-            return minutesHave;
-        }
+        public bool CanConsume() => GetRemainTimeInMinute() > 0;
+
+        public double GetRemainTimeInMinute() => (ConsumeOverTime - DateTime.Now).TotalMinutes;
 
         public (int minutes, int seconds) GetRemainTime()
         {
-            var timeSpan = this.ConsumeOverTime - DateTime.Now;
-            return ((int)Math.Max(timeSpan.TotalMinutes, 0), Math.Max(timeSpan.Seconds, 0));
+            var span = ConsumeOverTime - DateTime.Now;
+            return ((int)Math.Max(span.TotalMinutes, 0), Math.Max(span.Seconds, 0));
         }
-
-        // Player name
-        public string Name { get; set; } = name ?? "";
-
-        // Main auto fishing toggle
-        public bool AutoFishEnabled { get; set; } = autoFishEnabled;
-
-        // Buff toggle
-        public bool BuffEnabled { get; set; } = buffEnabled;
-
-        // Maximum number of hooks
-        public int HookMaxNum { get; set; } = hookMaxNum;
-
-        // Multi-hook toggle
-        public bool MultiHookEnabled { get; set; } = multiHookEnabled;
-
-        // Whether the auto-fishing hint has been shown
-        public bool FirstFishHintShown { get; set; } = firstFishHintShown;
-
-        // Block catching monsters
-        public bool BlockMonsterCatch { get; set; } = blockMonsterCatch;
-
-        // Skip fishing animation
-        public bool SkipFishingAnimation { get; set; } = skipFishingAnimation;
-
-        // Block quest fish
-        public bool BlockQuestFish { get; set; } = blockQuestFish;
-
-        // Protect valuable bait
-        public bool ProtectValuableBaitEnabled { get; set; } = protectValuableBaitEnabled;
-
-        // Timer used for consumption mode expiration
-        public DateTime ConsumeOverTime { get; set; } = DateTime.Now;
-
-        // Timer used only for display (start time)
-        public DateTime ConsumeStartTime { get; set; } = default;
     }
 }

@@ -1,138 +1,201 @@
-﻿using LazyAPI.Attributes;
-using TShockAPI;
+﻿using TShockAPI;
 
 namespace AutoFish;
 
-[Command("afa")]
-[Permissions("autofish.admin")]
 internal static class CommandAdmin
 {
-    #region toggle
-    [Alias("fish")]
-    public static void ToggleAutoFish(CommandArgs args)
+    public static void HandleCommand(CommandArgs args)
+    {
+        var subcmd = args.Parameters.Count > 0 ? args.Parameters[0].ToLower() : "help";
+
+        switch (subcmd)
+        {
+            case "fish":
+                ToggleAutoFish(args);
+                break;
+            case "buff":
+                ToggleAutoFishBuff(args);
+                break;
+            case "multi":
+                ToggleAutoFishMulti(args);
+                break;
+            case "mod":
+                ToggleAutoFishMod(args);
+                break;
+            case "monster":
+                ToggleAutoFishMonster(args);
+                break;
+            case "anim":
+                ToggleAutoFishAnim(args);
+                break;
+            case "debug":
+                ToggleAutoFishDebug(args);
+                break;
+            case "del":
+                DelBait(args);
+                break;
+            case "duo":
+                SetMultiHookMax(args);
+                break;
+            case "add":
+            case "set":
+                AddFishItem(args);
+                break;
+            case "time":
+                SetTime(args);
+                break;
+            default:
+                ShowHelp(args);
+                break;
+        }
+    }
+
+    private static void ToggleAutoFish(CommandArgs args)
     {
         Configuration.Instance.GlobalAutoFishFeatureEnabled = !Configuration.Instance.GlobalAutoFishFeatureEnabled;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalAutoFishFeatureEnabled ? "enabled" : "disabled")}] auto fishing."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalAutoFishFeatureEnabled ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] auto fishing.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("buff")]
-    public static void ToggleAutoFishBuff(CommandArgs args)
+    private static void ToggleAutoFishBuff(CommandArgs args)
     {
         Configuration.Instance.GlobalBuffFeatureEnabled = !Configuration.Instance.GlobalBuffFeatureEnabled;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalBuffFeatureEnabled ? "enabled" : "disabled")}] auto fishing buff."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalBuffFeatureEnabled ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] auto fishing buff.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("multi")]
-    public static void ToggleAutoFishMulti(CommandArgs args)
+    private static void ToggleAutoFishMulti(CommandArgs args)
     {
         Configuration.Instance.GlobalMultiHookFeatureEnabled = !Configuration.Instance.GlobalMultiHookFeatureEnabled;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalMultiHookFeatureEnabled ? "enabled" : "disabled")}] multi-hook feature."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalMultiHookFeatureEnabled ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] multi-hook feature.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("mod")]
-    public static void ToggleAutoFishMod(CommandArgs args)
+    private static void ToggleAutoFishMod(CommandArgs args)
     {
         Configuration.Instance.GlobalConsumptionModeEnabled = !Configuration.Instance.GlobalConsumptionModeEnabled;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalConsumptionModeEnabled ? "enabled" : "disabled")}] consumption mode."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalConsumptionModeEnabled ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] consumption mode.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("monster")]
-    public static void ToggleAutoFishMonster(CommandArgs args)
+    private static void ToggleAutoFishMonster(CommandArgs args)
     {
         Configuration.Instance.GlobalBlockMonsterCatch = !Configuration.Instance.GlobalBlockMonsterCatch;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalBlockMonsterCatch ? "enabled" : "disabled")}] no monster catching."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalBlockMonsterCatch ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] no monster catching.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("anim")]
-    public static void ToggleAutoFishAnim(CommandArgs args)
+    private static void ToggleAutoFishAnim(CommandArgs args)
     {
         Configuration.Instance.GlobalSkipFishingAnimation = !Configuration.Instance.GlobalSkipFishingAnimation;
-        args.Player.SendSuccessMessage(GetString($"Player [{args.Player.Name}] has [c/92C5EC:{(Configuration.Instance.GlobalSkipFishingAnimation ? "enabled" : "disabled")}] skip fishing animation."));
-        Configuration.Instance.SaveTo();
+        var status = Configuration.Instance.GlobalSkipFishingAnimation ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"[{args.Player.Name}] has [c/92C5EC:{status}] skip fishing animation.");
+        Configuration.Instance.Save();
     }
 
-    [Alias("debug")]
-    public static void ToggleAutoFishDebug(CommandArgs args)
+    private static void ToggleAutoFishDebug(CommandArgs args)
     {
         Plugin.DebugMode = !Plugin.DebugMode;
-        args.Player.SendSuccessMessage(GetString($"Debug mode [c/92C5EC:{(Plugin.DebugMode ? "enabled" : "disabled")}]."));
-        Configuration.Instance.SaveTo();
+        var status = Plugin.DebugMode ? "enabled" : "disabled";
+        args.Player.SendSuccessMessage($"Debug mode [c/92C5EC:{status}].");
     }
-    #endregion
 
-    [Alias("del")]
-    public static void DelBait(CommandArgs args, string type)
+    private static void DelBait(CommandArgs args)
     {
-        var selectItem = SelectItem(args.Player, type);
-        if (selectItem == null)
+        if (args.Parameters.Count < 2)
+        {
+            args.Player.SendErrorMessage("Usage: /afa del <item>");
             return;
+        }
 
-        var msg = Configuration.Instance.BaitRewards.Remove(selectItem.type)
-            ? GetString($"Successfully removed item from bait list: [i:{selectItem.type}]!")
-            : GetString("Item is not in the bait list!");
+        var item = SelectItem(args.Player, args.Parameters[1]);
+        if (item == null) return;
+
+        var msg = Configuration.Instance.BaitRewards.Remove(item.type)
+            ? $"Successfully removed item from bait list: [i:{item.type}]!"
+            : "Item is not in the bait list!";
 
         args.Player.SendInfoMessage(msg);
-        Configuration.Instance.SaveTo();
+        Configuration.Instance.Save();
     }
 
-    [Alias("duo")]
-    public static void SetMultiHookMax(CommandArgs args, uint max)
+    private static void SetMultiHookMax(CommandArgs args)
     {
-        Configuration.Instance.GlobalMultiHookMaxNum = (int)max;
-        Configuration.Instance.SaveTo();
-        args.Player.SendSuccessMessage(GetString($"Multi-hook limit set to: [c/92C5EC:{max}] hooks."));
-    }
-
-    [Alias("add", "set")]
-    public static void AddFishItem(CommandArgs args, string type, uint count, uint minutes)
-    {
-        var selectItem = SelectItem(args.Player, type);
-        if (selectItem == null)
+        if (args.Parameters.Count < 2 || !uint.TryParse(args.Parameters[1], out var max))
+        {
+            args.Player.SendErrorMessage("Usage: /afa duo <number>");
             return;
+        }
 
-        Configuration.Instance.BaitRewards[selectItem.type] = new Configuration.BaitReward
+        Configuration.Instance.GlobalMultiHookMaxNum = (int)max;
+        Configuration.Instance.Save();
+        args.Player.SendSuccessMessage($"Multi-hook limit set to: [c/92C5EC:{max}] hooks.");
+    }
+
+    private static void AddFishItem(CommandArgs args)
+    {
+        if (args.Parameters.Count < 4 || 
+            !uint.TryParse(args.Parameters[2], out var count) ||
+            !uint.TryParse(args.Parameters[3], out var minutes))
+        {
+            args.Player.SendErrorMessage("Usage: /afa add <item> <count> <minutes>");
+            return;
+        }
+
+        var item = SelectItem(args.Player, args.Parameters[1]);
+        if (item == null) return;
+
+        Configuration.Instance.BaitRewards[item.type] = new Configuration.BaitReward
         {
             Count = (int)count,
             Minutes = (int)minutes
         };
 
-        Configuration.Instance.SaveTo();
-        args.Player.SendSuccessMessage(GetString($"Set bait [i:{selectItem.type}] rule: every {count} → {minutes} minutes"));
+        Configuration.Instance.Save();
+        args.Player.SendSuccessMessage($"Set bait [i:{item.type}] rule: every {count} → {minutes} minutes");
     }
 
-    [Alias("time")]
-    public static void Time(CommandArgs args, string type, uint minutes)
+    private static void SetTime(CommandArgs args)
     {
-        var selectItem = SelectItem(args.Player, type);
-        if (selectItem == null)
+        if (args.Parameters.Count < 3 || !uint.TryParse(args.Parameters[2], out var minutes))
+        {
+            args.Player.SendErrorMessage("Usage: /afa time <item> <minutes>");
             return;
+        }
 
-        var bait = Configuration.Instance.BaitRewards[selectItem.type];
+        var item = SelectItem(args.Player, args.Parameters[1]);
+        if (item == null) return;
+
+        if (!Configuration.Instance.BaitRewards.TryGetValue(item.type, out var bait))
+        {
+            args.Player.SendErrorMessage("Item is not in the bait list!");
+            return;
+        }
+
         bait.Minutes = (int)minutes;
-
-        Configuration.Instance.SaveTo();
-        args.Player.SendSuccessMessage(GetString($"Updated bait [i:{selectItem.type}] rule: every {bait.Count} → {minutes} minutes"));
+        Configuration.Instance.Save();
+        args.Player.SendSuccessMessage($"Updated bait [i:{item.type}] rule: every {bait.Count} → {minutes} minutes");
     }
 
-    public static void Help(CommandArgs args)
+    private static void ShowHelp(CommandArgs args)
     {
-        args.Player.SendSuccessMessage(GetString("[Auto Fishing - Admin Commands]"));
-        args.Player.SendSuccessMessage(GetString("Use /afa to manage auto fishing."));
-        args.Player.SendSuccessMessage(GetString("/afa buff -- toggle global buff"));
-        args.Player.SendSuccessMessage(GetString("/afa multi -- toggle multi-hook mode"));
-        args.Player.SendSuccessMessage(GetString("/afa duo <num> -- set hook limit"));
-        args.Player.SendSuccessMessage(GetString("/afa mod -- toggle consumption mode"));
-        args.Player.SendSuccessMessage(GetString("/afa set <item> <count> <minutes> -- set bait rule"));
-        args.Player.SendSuccessMessage(GetString("/afa time <item> <minutes> -- change duration"));
-        args.Player.SendSuccessMessage(GetString("/afa add <item> <count> <minutes> -- add bait"));
-        args.Player.SendSuccessMessage(GetString("/afa del <item> -- remove bait"));
-        args.Player.SendSuccessMessage(GetString("/afa monster -- toggle monster catching"));
-        args.Player.SendSuccessMessage(GetString("/afa anim -- toggle skip animation"));
+        args.Player.SendSuccessMessage("[Auto Fishing - Admin Commands]");
+        args.Player.SendInfoMessage("/afa fish -- toggle global auto fishing");
+        args.Player.SendInfoMessage("/afa buff -- toggle global buff");
+        args.Player.SendInfoMessage("/afa multi -- toggle multi-hook mode");
+        args.Player.SendInfoMessage("/afa duo <num> -- set hook limit");
+        args.Player.SendInfoMessage("/afa mod -- toggle consumption mode");
+        args.Player.SendInfoMessage("/afa set <item> <count> <minutes> -- set bait rule");
+        args.Player.SendInfoMessage("/afa time <item> <minutes> -- change duration");
+        args.Player.SendInfoMessage("/afa del <item> -- remove bait");
+        args.Player.SendInfoMessage("/afa monster -- toggle monster catching");
+        args.Player.SendInfoMessage("/afa anim -- toggle skip animation");
+        args.Player.SendInfoMessage("/afa debug -- toggle debug mode");
     }
 
     private static Terraria.Item? SelectItem(TSPlayer player, string type)
@@ -147,7 +210,7 @@ internal static class CommandAdmin
 
         if (items.Count == 0)
         {
-            player.SendErrorMessage(GetString("Item does not exist!"));
+            player.SendErrorMessage("Item does not exist!");
             return null;
         }
 

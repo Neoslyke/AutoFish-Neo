@@ -1,1 +1,0 @@
-global using static AutoFish.Utils.Utils;

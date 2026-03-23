@@ -1,85 +1,82 @@
-﻿using LazyAPI.Attributes;
-using LazyAPI.ConfigFiles;
-using TShockAPI.Hooks;
+﻿using Newtonsoft.Json;
+using TShockAPI;
 
 namespace AutoFish;
 
-internal class Configuration : JsonConfigBase<Configuration>
+internal class Configuration
 {
+    private static readonly string ConfigPath = Path.Combine(TShock.SavePath, "AutoFish.json");
+    
+    public static Configuration Instance { get; private set; } = new();
+
     public class BaitReward
     {
-        [LocalizedPropertyName(CultureType.English, "Count")]
         public int Count { get; set; }
-
-        [LocalizedPropertyName(CultureType.English, "Minutes")]
         public int Minutes { get; set; }
     }
 
-    [LocalizedPropertyName(CultureType.English, "Enabled")]
     public bool Enabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "AutoFishEnabled")]
     public bool GlobalAutoFishFeatureEnabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultAutoFish")]
     public bool DefaultAutoFishEnabled { get; set; }
-
-    [LocalizedPropertyName(CultureType.English, "BuffEnabled")]
     public bool GlobalBuffFeatureEnabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultBuff")]
     public bool DefaultBuffEnabled { get; set; }
-
-    [LocalizedPropertyName(CultureType.English, "MultiHookEnabled")]
     public bool GlobalMultiHookFeatureEnabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "MultiHookLimit")]
     public int GlobalMultiHookMaxNum { get; set; } = 5;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultMultiHook")]
     public bool DefaultMultiHookEnabled { get; set; }
-
-    [LocalizedPropertyName(CultureType.English, "BlockMonsters")]
     public bool GlobalBlockMonsterCatch { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultBlockMonsters")]
     public bool DefaultBlockMonsterCatch { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "SkipAnimation")]
     public bool GlobalSkipFishingAnimation { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultSkipAnimation")]
-    public bool DefaultSkipFishingAnimation { get; set; } = false;
-
-    [LocalizedPropertyName(CultureType.English, "BlockQuestFish")]
+    public bool DefaultSkipFishingAnimation { get; set; }
     public bool GlobalBlockQuestFish { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultBlockQuestFish")]
-    public bool DefaultBlockQuestFish { get; set; } = false;
-
-    [LocalizedPropertyName(CultureType.English, "ProtectBait")]
+    public bool DefaultBlockQuestFish { get; set; }
     public bool GlobalProtectValuableBaitEnabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "DefaultProtectBait")]
     public bool DefaultProtectValuableBaitEnabled { get; set; } = true;
-
-    [LocalizedPropertyName(CultureType.English, "ConsumptionMode")]
     public bool GlobalConsumptionModeEnabled { get; set; }
+    
+    public Dictionary<int, BaitReward> BaitRewards { get; set; } = new();
+    public List<int> ValuableBaitItemIds { get; set; } = new();
+    public Dictionary<int, int> BuffDurations { get; set; } = new();
 
-    [LocalizedPropertyName(CultureType.English, "BaitRewards")]
-    public Dictionary<int, BaitReward> BaitRewards { get; set; } = [];
-
-    [LocalizedPropertyName(CultureType.English, "ValuableBaits")]
-    public List<int> ValuableBaitItemIds { get; set; } = [];
-
-    [LocalizedPropertyName(CultureType.English, "Buffs")]
-    public Dictionary<int, int> BuffDurations { get; set; } = [];
-
-    protected override string Filename => "AutoFish";
-
-    protected override void SetDefault()
+    public static void Load()
     {
-        this.BaitRewards = new Dictionary<int, BaitReward>()
+        try
+        {
+            if (File.Exists(ConfigPath))
+            {
+                var json = File.ReadAllText(ConfigPath);
+                Instance = JsonConvert.DeserializeObject<Configuration>(json) ?? new Configuration();
+            }
+            else
+            {
+                Instance = new Configuration();
+                Instance.SetDefault();
+                Instance.Save();
+            }
+        }
+        catch (Exception ex)
+        {
+            TShock.Log.ConsoleError($"[AutoFish] Config load error: {ex.Message}");
+            Instance = new Configuration();
+            Instance.SetDefault();
+        }
+    }
+
+    public void Save()
+    {
+        try
+        {
+            var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+            File.WriteAllText(ConfigPath, json);
+        }
+        catch (Exception ex)
+        {
+            TShock.Log.ConsoleError($"[AutoFish] Config save error: {ex.Message}");
+        }
+    }
+
+    private void SetDefault()
+    {
+        BaitRewards = new Dictionary<int, BaitReward>
         {
             { 2002, new BaitReward { Count = 1, Minutes = 1 } },
             { 2675, new BaitReward { Count = 1, Minutes = 5 } },
@@ -88,26 +85,11 @@ internal class Configuration : JsonConfigBase<Configuration>
             { 3194, new BaitReward { Count = 1, Minutes = 5 } }
         };
 
-        this.ValuableBaitItemIds =
-        [
-            2673,
-            1999,
-            2436,
-            2437,
-            2438,
-            2891,
-            4340,
-            2893,
-            4362,
-            4419,
-            2895
-        ];
+        ValuableBaitItemIds = new List<int>
+        {
+            2673, 1999, 2436, 2437, 2438, 2891, 4340, 2893, 4362, 4419, 2895
+        };
 
-        this.BuffDurations.Add(114, 1);
-    }
-
-    protected override void Reload(ReloadEventArgs args)
-    {
-        args.Player.SendSuccessMessage("[AutoFishing] Config reloaded successfully");
+        BuffDurations = new Dictionary<int, int> { { 114, 1 } };
     }
 }

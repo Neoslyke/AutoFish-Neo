@@ -5,55 +5,93 @@ using Terraria.ID;
 
 namespace AutoFish.Utils;
 
-public class SpawnProjectile
+public static class SpawnProjectile
 {
-    public static int NewProjectile(IEntitySource spawnSource, Vector2 position, Vector2 velocity, int Type,
-        int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f,
-        int timeLeft = -1, string uuid = "")
+    public static int NewProjectile(
+        IEntitySource spawnSource, 
+        Vector2 position, 
+        Vector2 velocity, 
+        int type,
+        int damage, 
+        float knockBack, 
+        int owner = -1, 
+        float ai0 = 0f, 
+        float ai1 = 0f, 
+        float ai2 = 0f,
+        int timeLeft = -1, 
+        string uuid = "")
     {
-        return NewProjectile(spawnSource, position.X, position.Y, velocity.X, velocity.Y, Type, Damage, KnockBack,
-            Owner, ai0, ai1, ai2, timeLeft, uuid);
+        return NewProjectile(
+            spawnSource, 
+            position.X, 
+            position.Y, 
+            velocity.X, 
+            velocity.Y, 
+            type, 
+            damage, 
+            knockBack,
+            owner, 
+            ai0, 
+            ai1, 
+            ai2, 
+            timeLeft, 
+            uuid);
     }
 
-    // All bobber types:
-    // 360–366, 381, 382 → normal bobbers
-    // 760, 775 → special bobbers
-    // 986–993 → glowing bobbers
-    public static int NewProjectile(IEntitySource spawnSource, float X, float Y, float SpeedX, float SpeedY,
-        int Type, int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0,
-        int timeLeft = -1, string uuid = "")
+    /// <summary>
+    /// Creates a new fishing bobber projectile.
+    /// Bobber types: 360–366, 381, 382 (normal), 760, 775 (special), 986–993 (glowing)
+    /// </summary>
+    public static int NewProjectile(
+        IEntitySource spawnSource, 
+        float x, 
+        float y, 
+        float speedX, 
+        float speedY,
+        int type, 
+        int damage, 
+        float knockBack, 
+        int owner = -1, 
+        float ai0 = 0f, 
+        float ai1 = 0f, 
+        float ai2 = 0f,
+        int timeLeft = -1, 
+        string uuid = "")
     {
-        if (Owner == -1)
-            Owner = Main.myPlayer;
+        if (owner == -1)
+            owner = Main.myPlayer;
 
-        var num = 1000;
-
+        // Find an available projectile slot (search from end for better slot distribution)
+        var index = 1000;
         for (var i = 999; i > 0; i--)
         {
             if (!Main.projectile[i].active)
             {
-                num = i;
+                index = i;
                 break;
             }
         }
 
-        if (num == 1000)
-            num = Projectile.FindOldestProjectile();
+        // If no slot found, reuse oldest projectile
+        if (index == 1000)
+            index = Projectile.FindOldestProjectile();
 
-        var projectile = Main.projectile[num];
+        var projectile = Main.projectile[index];
 
-        projectile.SetDefaults(Type);
-        projectile.position.X = X;
-        projectile.position.Y = Y;
-        projectile.owner = Owner;
-        projectile.velocity.X = SpeedX;
-        projectile.velocity.Y = SpeedY;
-        projectile.damage = Damage;
-        projectile.knockBack = KnockBack;
-        projectile.identity = num;
+        // Initialize projectile
+        projectile.SetDefaults(type);
+        projectile.position.X = x;
+        projectile.position.Y = y;
+        projectile.owner = owner;
+        projectile.velocity.X = speedX;
+        projectile.velocity.Y = speedY;
+        projectile.damage = damage;
+        projectile.knockBack = knockBack;
+        projectile.identity = index;
         projectile.gfxOffY = 0f;
         projectile.stepSpeed = 1f;
 
+        // Check water collision
         projectile.wet = Collision.WetCollision(projectile.position, projectile.width, projectile.height);
         if (projectile.ignoreWater)
             projectile.wet = false;
@@ -61,10 +99,11 @@ public class SpawnProjectile
         projectile.honeyWet = Collision.honey;
         projectile.shimmerWet = Collision.shimmer;
 
-        Main.projectileIdentity[Owner, num] = num;
+        Main.projectileIdentity[owner, index] = index;
 
         projectile.FindBannerToAssociateTo(spawnSource);
 
+        // Only process fishing bobber AI style (61)
         if (projectile.aiStyle != 61)
             return 0;
 
@@ -72,30 +111,33 @@ public class SpawnProjectile
         projectile.ai[1] = ai1;
         projectile.ai[2] = ai2;
 
-        if (Type > 0 && Type < ProjectileID.Count)
+        // Handle special projectile types
+        if (type > 0 && type < ProjectileID.Count)
         {
-            if (ProjectileID.Sets.NeedsUUID[Type])
+            if (ProjectileID.Sets.NeedsUUID[type])
                 projectile.projUUID = projectile.identity;
 
-            if (ProjectileID.Sets.StardustDragon[Type])
+            if (ProjectileID.Sets.StardustDragon[type])
             {
-                var num2 = Main.projectile[(int)projectile.ai[0]].projUUID;
-                if (num2 >= 0)
-                    projectile.ai[0] = num2;
+                var uuidRef = Main.projectile[(int)projectile.ai[0]].projUUID;
+                if (uuidRef >= 0)
+                    projectile.ai[0] = uuidRef;
             }
         }
 
-        if (Main.netMode != 0 && Owner == Main.myPlayer)
-            NetMessage.SendData(27, -1, -1, null, num);
+        // Sync to clients if in multiplayer
+        if (Main.netMode != 0 && owner == Main.myPlayer)
+            NetMessage.SendData(27, -1, -1, null, index);
 
-        if (Owner == Main.myPlayer)
-            Main.player[Owner].TryUpdateChannel(projectile);
+        if (owner == Main.myPlayer)
+            Main.player[owner].TryUpdateChannel(projectile);
 
         if (timeLeft > 0)
             projectile.timeLeft = timeLeft;
 
+        // Store UUID for tracking
         projectile.miscText = uuid;
 
-        return num;
+        return index;
     }
 }
